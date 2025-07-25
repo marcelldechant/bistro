@@ -1,11 +1,14 @@
 package de.deichmann.bistro.product.service;
 
+import de.deichmann.bistro.product.dto.CreateProductDto;
 import de.deichmann.bistro.product.dto.ProductResponseDto;
+import de.deichmann.bistro.product.entity.Product;
 import de.deichmann.bistro.product.exception.ProductNotFoundException;
 import de.deichmann.bistro.product.mapper.ProductMapper;
 import de.deichmann.bistro.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 
@@ -17,6 +20,7 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
+@Validated
 public class ProductService {
 
     private final ProductRepository productRepository;
@@ -48,6 +52,18 @@ public class ProductService {
                 .findById(id)
                 .map(ProductMapper::toResponseDto)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
+    }
+
+    /**
+     * Creates a new product.
+     * This method saves a new product to the repository using the provided CreateProductDto.
+     *
+     * @param createProductDto the DTO containing the product details to create
+     * @return a ProductResponseDto containing the created product details
+     */
+    public ProductResponseDto createProduct(CreateProductDto createProductDto) {
+        Product savedProduct = productRepository.save(ProductMapper.toEntity(createProductDto));
+        return ProductMapper.toResponseDto(savedProduct);
     }
 
 }

@@ -1,5 +1,6 @@
 package de.deichmann.bistro.product.mapper;
 
+import de.deichmann.bistro.product.dto.CreateProductDto;
 import de.deichmann.bistro.product.dto.ProductResponseDto;
 import de.deichmann.bistro.product.entity.Product;
 
@@ -22,6 +23,19 @@ public class ProductMapper {
      */
     public static ProductResponseDto toResponseDto(Product product) {
         return new ProductResponseDto(product.getId(), product.getName(), product.getPrice());
+    }
+
+    /**
+     * Converts a CreateProductDto to a Product entity.
+     *
+     * @param dto createProductDto to convert
+     * @return a Product entity with the name and price from the dto
+     */
+    public static Product toEntity(CreateProductDto dto) {
+        return Product.builder()
+                .name(dto.name())
+                .price(dto.price())
+                .build();
     }
 
 }

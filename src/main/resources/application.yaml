@@ -19,3 +19,6 @@ spring:
       ddl-auto: update
     show-sql: true
     open-in-view: false
+
+csv:
+  input-directory: ./data/input
