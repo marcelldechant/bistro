@@ -78,6 +78,7 @@
     </dependencies>
 
     <build>
+        <finalName>bistro</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
