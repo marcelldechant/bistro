@@ -1,6 +1,7 @@
 package de.deichmann.bistro.product.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.deichmann.bistro.exception.dto.CustomApiErrorResponseDto;
 import de.deichmann.bistro.product.config.ProductServiceTestConfig;
 import de.deichmann.bistro.product.dto.ProductResponseDto;
 import de.deichmann.bistro.product.service.ProductService;
@@ -46,4 +47,32 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(content().json(objectMapper.writeValueAsString(mockProducts)));
     }
+
+    @Test
+    void getAllProducts_internalServerError_returnsErrorResponse() throws Exception {
+        when(productService.getAllProducts()).thenThrow(new RuntimeException("Schade! Das ist schiefgegangen!"));
+
+        String requestPath = "/api/v1/products";
+        String errorMessage = "Schade! Das ist schiefgegangen!";
+
+        CustomApiErrorResponseDto expectedResponse = new CustomApiErrorResponseDto(
+                errorMessage,
+                requestPath,
+                null,
+                500
+        );
+
+        String responseContent = mockMvc.perform(get(requestPath))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn().getResponse().getContentAsString();
+
+        CustomApiErrorResponseDto actualResponse = objectMapper.readValue(responseContent, CustomApiErrorResponseDto.class);
+
+        assert actualResponse.message().equals(expectedResponse.message());
+        assert actualResponse.path().equals(expectedResponse.path());
+        assert actualResponse.statusCode() == expectedResponse.statusCode();
+        assert actualResponse.timestamp() != null;
+    }
+
 }
