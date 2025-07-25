@@ -1,0 +1,1 @@
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=marcelldechant_bistro)](https://sonarcloud.io/summary/new_code?id=marcelldechant_bistro)
