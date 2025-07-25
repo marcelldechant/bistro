@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
@@ -73,5 +74,68 @@ public interface ProductApi {
     )
     @GetMapping
     List<ProductResponseDto> getAllProducts();
+
+    /**
+     * Retrieves a product by its ID.
+     * This method returns a ProductResponseDto object containing the details of the specified product.
+     *
+     * @param id the ID of the product to retrieve
+     * @return a ProductResponseDto representing the product with the specified ID
+     */
+    @Operation(
+            summary = "Get product by ID",
+            description = "Returns the product with the specified ID",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Successful operation",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ProductResponseDto.class),
+                                    examples = @ExampleObject(value = """
+                                            {
+                                              "id": 1,
+                                              "name": "Pizza Margherita",
+                                              "price": 8.50
+                                            }
+                                            """)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Product not found",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = CustomApiErrorResponseDto.class),
+                                    examples = @ExampleObject(value = """
+                                            {
+                                              "message": "Product not found with id: 999",
+                                              "path": "/api/v1/products/999",
+                                              "timestamp": "2025-07-25T22:18:45.123Z",
+                                              "statusCode": 404
+                                            }
+                                            """)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Internal server error",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = CustomApiErrorResponseDto.class),
+                                    examples = @ExampleObject(value = """
+                                            {
+                                              "message": "Database connection failed",
+                                              "path": "/api/v1/products/1",
+                                              "timestamp": "2025-07-25T22:18:45.123Z",
+                                              "statusCode": 500
+                                            }
+                                            """)
+                            )
+                    )
+            }
+    )
+    @GetMapping("/{id}")
+    ProductResponseDto getProductById(@PathVariable long id);
 
 }

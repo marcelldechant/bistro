@@ -35,4 +35,16 @@ public class ProductController implements ProductApi {
         return productService.getAllProducts();
     }
 
+    /**
+     * Retrieves a product by its ID from the product service.
+     * This method is mapped to the GET request for the URL "/{id}" where {id} is the product ID.
+     *
+     * @param id the ID of the product to retrieve
+     * @return a ProductResponseDto containing the product details
+     */
+    @Override
+    public ProductResponseDto getProductById(long id) {
+        return productService.getProductById(id);
+    }
+
 }

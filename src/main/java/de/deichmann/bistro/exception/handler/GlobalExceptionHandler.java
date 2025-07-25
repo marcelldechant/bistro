@@ -1,6 +1,7 @@
 package de.deichmann.bistro.exception.handler;
 
 import de.deichmann.bistro.exception.dto.CustomApiErrorResponseDto;
+import de.deichmann.bistro.product.exception.ProductNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -36,6 +37,26 @@ public class GlobalExceptionHandler {
                 Instant.now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value()
         );
+    }
+
+    /**
+     * Handles ProductNotFoundException specifically.
+     * Returns a CustomApiErrorResponseDto with the error message, request URI, timestamp, and HTTP status code 404 (Not Found).
+     *
+     * @param e       the ProductNotFoundException that was thrown
+     * @param request the HTTP request that caused the exception
+     * @return a CustomApiErrorResponseDto containing error details
+     */
+    @ExceptionHandler(ProductNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public CustomApiErrorResponseDto handleProductNotFoundException(ProductNotFoundException e, HttpServletRequest request) {
+        return new CustomApiErrorResponseDto(
+                e.getMessage(),
+                request.getRequestURI(),
+                Instant.now(),
+                HttpStatus.NOT_FOUND.value()
+        );
+
     }
 
 }

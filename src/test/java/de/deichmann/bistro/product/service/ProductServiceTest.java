@@ -2,6 +2,7 @@ package de.deichmann.bistro.product.service;
 
 import de.deichmann.bistro.product.dto.ProductResponseDto;
 import de.deichmann.bistro.product.entity.Product;
+import de.deichmann.bistro.product.exception.ProductNotFoundException;
 import de.deichmann.bistro.product.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,6 +83,38 @@ class ProductServiceTest {
                     assertThat(dto.name()).isEqualTo(saved.getName());
                     assertThat(dto.price()).isEqualByComparingTo(saved.getPrice());
                 });
+    }
+
+    @Test
+    void getProductById_expectProduct_whenProductExistsInDb() {
+        Product product = Product.builder()
+                .name("Test Product")
+                .price(BigDecimal.valueOf(10.00))
+                .build();
+        Product savedProduct = productRepository.save(product);
+
+        ProductResponseDto productResponseDto = productService.getProductById(savedProduct.getId());
+
+        assertThat(productResponseDto)
+                .isNotNull()
+                .satisfies(dto -> {
+                    assertThat(dto.id()).isEqualTo(savedProduct.getId());
+                    assertThat(dto.name()).isEqualTo(savedProduct.getName());
+                    assertThat(dto.price()).isEqualByComparingTo(savedProduct.getPrice());
+                });
+    }
+
+    @Test
+    void getProductById_expectProductNotFoundException_whenProductDoesNotExistInDb() {
+        long nonExistentId = 999L;
+
+        try {
+            productService.getProductById(nonExistentId);
+        } catch (Exception e) {
+            assertThat(e)
+                    .isInstanceOf(ProductNotFoundException.class)
+                    .hasMessageContaining("Product not found with id: " + nonExistentId);
+        }
     }
 
 }

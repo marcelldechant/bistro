@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.deichmann.bistro.exception.dto.CustomApiErrorResponseDto;
 import de.deichmann.bistro.product.config.ProductServiceTestConfig;
 import de.deichmann.bistro.product.dto.ProductResponseDto;
+import de.deichmann.bistro.product.exception.ProductNotFoundException;
 import de.deichmann.bistro.product.service.ProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -71,6 +72,46 @@ class ProductControllerTest {
 
         String responseContent = mockMvc.perform(get(requestPath))
                 .andExpect(status().isInternalServerError())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn().getResponse().getContentAsString();
+
+        CustomApiErrorResponseDto actualResponse = objectMapper.readValue(responseContent, CustomApiErrorResponseDto.class);
+
+        assert actualResponse.message().equals(expectedResponse.message());
+        assert actualResponse.path().equals(expectedResponse.path());
+        assert actualResponse.statusCode() == expectedResponse.statusCode();
+        assert actualResponse.timestamp() != null;
+    }
+
+    @Test
+    void getProductById_returnsOkAndProduct() throws Exception {
+        ProductResponseDto mockProduct = new ProductResponseDto(1L, "Pizza", BigDecimal.valueOf(8.50));
+
+        when(productService.getProductById(1L)).thenReturn(mockProduct);
+
+        mockMvc.perform(get("/api/v1/products/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().json(objectMapper.writeValueAsString(mockProduct)));
+    }
+
+    @Test
+    void getProductById_notFound_returnsNotFound() throws Exception {
+        long nonExistentId = 999L;
+        when(productService.getProductById(nonExistentId)).thenThrow(new ProductNotFoundException("Product not found with id: " + nonExistentId));
+
+        String requestPath = "/api/v1/products/" + nonExistentId;
+        String errorMessage = "Product not found with id: " + nonExistentId;
+
+        CustomApiErrorResponseDto expectedResponse = new CustomApiErrorResponseDto(
+                errorMessage,
+                requestPath,
+                null,
+                404
+        );
+
+        String responseContent = mockMvc.perform(get(requestPath))
+                .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn().getResponse().getContentAsString();
 
