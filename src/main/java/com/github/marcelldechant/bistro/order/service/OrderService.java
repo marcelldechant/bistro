@@ -3,7 +3,10 @@ package com.github.marcelldechant.bistro.order.service;
 import com.github.marcelldechant.bistro.order.dto.CreateOrderDto;
 import com.github.marcelldechant.bistro.order.dto.OrderResponseDto;
 import com.github.marcelldechant.bistro.order.entity.Order;
+import com.github.marcelldechant.bistro.order.exception.DuplicateException;
+import com.github.marcelldechant.bistro.order.exception.NoItemsException;
 import com.github.marcelldechant.bistro.order.exception.OrderNotFoundException;
+import com.github.marcelldechant.bistro.order.exception.QuantityException;
 import com.github.marcelldechant.bistro.order.mapper.OrderMapper;
 import com.github.marcelldechant.bistro.order.repository.OrderRepository;
 import com.github.marcelldechant.bistro.orderitem.dto.CreateOrderItemDto;
@@ -91,16 +94,39 @@ public class OrderService {
      * @return a list of OrderItem entities
      */
     private List<OrderItem> buildOrderItems(List<CreateOrderItemDto> itemDtos) {
+        if (itemDtos.isEmpty()) {
+            throw new NoItemsException("Order must contain at least one item");
+        }
+
+        validateNoDuplicateProducts(itemDtos);
+
         List<OrderItem> items = new ArrayList<>();
         for (CreateOrderItemDto dto : itemDtos) {
             if (dto.quantity() <= 0) {
-                throw new IllegalArgumentException("Quantity must be greater than 0");
+                throw new QuantityException("Quantity must be greater than 0");
             }
 
             Product product = productService.getProductByIdEntity(dto.productId());
             items.add(OrderItemMapper.toEntity(dto, product));
         }
         return items;
+    }
+
+    /**
+     * Validates that there are no duplicate products in the order items.
+     * If duplicates are found, an IllegalArgumentException is thrown.
+     *
+     * @param items the list of CreateOrderItemDto to validate
+     */
+    private void validateNoDuplicateProducts(List<CreateOrderItemDto> items) {
+        long uniqueCount = items.stream()
+                .map(CreateOrderItemDto::productId)
+                .distinct()
+                .count();
+
+        if (uniqueCount < items.size()) {
+            throw new DuplicateException("Duplicate products in order are not allowed");
+        }
     }
 
     /**
