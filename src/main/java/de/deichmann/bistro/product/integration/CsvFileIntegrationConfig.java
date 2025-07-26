@@ -19,6 +19,14 @@ import java.io.File;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * Configuration class for integrating CSV file reading into the Bistro application.
+ * This class sets up an integration flow that reads CSV files from a specified directory,
+ * transforms the content into Product objects, validates them, and saves them using the ProductService.
+ * It uses Spring Integration to handle file reading and processing.
+ *
+ * @author Marcell Dechant
+ */
 @Configuration
 @EnableIntegration
 @Slf4j
@@ -30,6 +38,12 @@ public class CsvFileIntegrationConfig {
 
     private final Validator validator;
 
+    /**
+     * Bean definition for the CsvToProductTransformer.
+     * This transformer converts CSV lines into CreateProductDto objects.
+     *
+     * @return a CsvToProductTransformer instance
+     */
     @Bean
     public IntegrationFlow fileReadingFlow(CsvToProductTransformer transformer, ProductService productService) {
         return IntegrationFlow
@@ -62,6 +76,13 @@ public class CsvFileIntegrationConfig {
                 .get();
     }
 
+    /**
+     * Validates the CreateProductDto object.
+     * If the object is invalid, it logs the violations and returns false.
+     *
+     * @param product createProductDto to validate
+     * @return true if valid, false otherwise
+     */
     private boolean isValid(CreateProductDto product) {
         Set<ConstraintViolation<CreateProductDto>> violations = validator.validate(product);
         if (!violations.isEmpty()) {

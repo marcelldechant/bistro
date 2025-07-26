@@ -12,6 +12,10 @@ import de.deichmann.bistro.product.entity.Product;
  */
 public class ProductMapper {
 
+    /**
+     * Private constructor to prevent instantiation of the mapper class.
+     * This class is intended to be used statically, so no instances should be created.
+     */
     private ProductMapper() {
     }
 
