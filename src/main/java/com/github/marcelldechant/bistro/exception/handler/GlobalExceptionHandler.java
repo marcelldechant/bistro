@@ -1,6 +1,8 @@
 package com.github.marcelldechant.bistro.exception.handler;
 
 import com.github.marcelldechant.bistro.exception.dto.CustomApiErrorResponseDto;
+import com.github.marcelldechant.bistro.order.exception.DuplicateException;
+import com.github.marcelldechant.bistro.order.exception.NoItemsException;
 import com.github.marcelldechant.bistro.order.exception.OrderNotFoundException;
 import com.github.marcelldechant.bistro.product.exception.ProductNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -79,6 +81,44 @@ public class GlobalExceptionHandler {
                 request.getRequestURI(),
                 Instant.now(),
                 HttpStatus.NOT_FOUND.value()
+        );
+    }
+
+    /**
+     * Handles NoItemsException specifically.
+     * Returns a CustomApiErrorResponseDto with the error message, request URI, timestamp, and HTTP status code 400 (Bad Request).
+     *
+     * @param e       the NoItemsException that was thrown
+     * @param request the HTTP request that caused the exception
+     * @return a CustomApiErrorResponseDto containing error details
+     */
+    @ExceptionHandler(NoItemsException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public CustomApiErrorResponseDto handleNoItemsException(NoItemsException e, HttpServletRequest request) {
+        return new CustomApiErrorResponseDto(
+                e.getMessage(),
+                request.getRequestURI(),
+                Instant.now(),
+                HttpStatus.BAD_REQUEST.value()
+        );
+    }
+
+    /**
+     * Handles DuplicateException specifically.
+     * Returns a CustomApiErrorResponseDto with the error message, request URI, timestamp, and HTTP status code 409 (Conflict).
+     *
+     * @param e       the DuplicateException that was thrown
+     * @param request the HTTP request that caused the exception
+     * @return a CustomApiErrorResponseDto containing error details
+     */
+    @ExceptionHandler(DuplicateException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public CustomApiErrorResponseDto handleDuplicateException(DuplicateException e, HttpServletRequest request) {
+        return new CustomApiErrorResponseDto(
+                e.getMessage(),
+                request.getRequestURI(),
+                Instant.now(),
+                HttpStatus.CONFLICT.value()
         );
     }
 
