@@ -1,6 +1,7 @@
 package com.github.marcelldechant.bistro.product.integration;
 
 import com.github.marcelldechant.bistro.product.dto.CreateProductDto;
+import com.github.marcelldechant.bistro.product.exception.FileReadException;
 import com.github.marcelldechant.bistro.product.service.ProductService;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
@@ -57,7 +58,7 @@ public class CsvFileIntegrationConfig {
                         return java.nio.file.Files.readString(file.toPath());
                     } catch (Exception e) {
                         log.error("Failed to read file: {}", file.getName(), e);
-                        throw new RuntimeException("Failed to read file", e);
+                        throw new FileReadException("Failed to read file", e);
                     }
                 }) // Read file content as String
                 .split(String.class, s -> s.split("\n")) // Split file content into lines
