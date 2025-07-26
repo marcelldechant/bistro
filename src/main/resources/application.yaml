@@ -1,12 +1,12 @@
 spring:
   application:
-    name: Deichmann Bistro
+    name: Bistro
     version: 1.0.0
 
   datasource:
     url: jdbc:h2:mem:bistrodb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
-    username: deichmann
+    username: bistro
     password:
 
   h2:

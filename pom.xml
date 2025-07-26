@@ -8,7 +8,7 @@
         <version>3.5.4</version>
         <relativePath/>
     </parent>
-    <groupId>de.deichmann</groupId>
+    <groupId>com.github.marcelldechant</groupId>
     <artifactId>bistro</artifactId>
     <version>1.0.0</version>
     <name>bistro</name>
@@ -25,7 +25,7 @@
         <java.version>21</java.version>
         <sonar.organization>marcelldechant</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <sonar.exclusions>src/main/java/de/deichmann/bistro/BistroApplication.java</sonar.exclusions>
+        <sonar.exclusions>src/main/java/com/github/marcelldechant/bistro/BistroApplication.java</sonar.exclusions>
     </properties>
     <dependencies>
         <dependency>
