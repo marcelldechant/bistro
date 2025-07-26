@@ -7,7 +7,6 @@ import com.github.marcelldechant.bistro.order.entity.Order;
 import com.github.marcelldechant.bistro.order.service.OrderService;
 import com.github.marcelldechant.bistro.order.util.ReceiptFormatter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -34,6 +33,7 @@ public class OrderController implements OrderApi {
      * @return an OrderResponseDto containing the created order details
      */
     @Override
+    //TODO: Add integration tests for this method
     public OrderResponseDto createOrder(CreateOrderDto createOrderDto) {
         return orderService.createOrder(createOrderDto);
     }
@@ -46,7 +46,8 @@ public class OrderController implements OrderApi {
      * @return an OrderResponseDto containing the order details
      */
     @Override
-    public OrderResponseDto getOrderById(@PathVariable long id) {
+    //TODO: Add integration tests for this method
+    public OrderResponseDto getOrderById(long id) {
         return orderService.getOrderById(id);
     }
 
@@ -58,7 +59,8 @@ public class OrderController implements OrderApi {
      * @return a String containing the formatted receipt
      */
     @Override
-    public String getReceipt(@PathVariable long id) {
+    //TODO: Add integration tests for this method
+    public String getReceipt(long id) {
         Order order = orderService.getOrderByIdEntity(id);
         return ReceiptFormatter.format(order);
     }
