@@ -24,6 +24,7 @@ public interface OrderApi {
      */
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
+    //TODO: Add OpenAPI documentation annotations
     OrderResponseDto createOrder(@RequestBody CreateOrderDto createOrderDto);
 
     /**
@@ -33,6 +34,7 @@ public interface OrderApi {
      * @param id the ID of the order to retrieve
      * @return an OrderResponseDto containing the order details
      */
+    //TODO: Add OpenAPI documentation annotations
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     OrderResponseDto getOrderById(@PathVariable long id);
 
@@ -43,6 +45,7 @@ public interface OrderApi {
      * @param id the ID of the order for which to retrieve the receipt
      * @return a String containing the receipt details
      */
+    //TODO: Add OpenAPI documentation annotations
     @GetMapping(value = "/{id}/receipt", produces = MediaType.TEXT_PLAIN_VALUE)
     String getReceipt(@PathVariable long id);
 }
