@@ -10,6 +10,13 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
+/**
+ * Represents an item in an order in the Bistro application.
+ * Each OrderItem is associated with a Product and contains information about the quantity,
+ * price per unit, and total price.
+ *
+ * @author Marcell Dechant
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

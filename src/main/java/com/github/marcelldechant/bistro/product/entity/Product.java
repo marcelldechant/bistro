@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 @Data
 @Builder
 @Entity
+@Table(name = "products")
 public class Product {
 
     @Id

@@ -1,6 +1,7 @@
 package com.github.marcelldechant.bistro.exception.handler;
 
 import com.github.marcelldechant.bistro.exception.dto.CustomApiErrorResponseDto;
+import com.github.marcelldechant.bistro.order.exception.OrderNotFoundException;
 import com.github.marcelldechant.bistro.product.exception.ProductNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -31,12 +32,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public CustomApiErrorResponseDto handleException(Exception e, HttpServletRequest request) {
+
         return new CustomApiErrorResponseDto(
                 e.getMessage(),
                 request.getRequestURI(),
                 Instant.now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value()
         );
+
     }
 
     /**
@@ -50,6 +53,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ProductNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public CustomApiErrorResponseDto handleProductNotFoundException(ProductNotFoundException e, HttpServletRequest request) {
+
         return new CustomApiErrorResponseDto(
                 e.getMessage(),
                 request.getRequestURI(),
@@ -57,6 +61,25 @@ public class GlobalExceptionHandler {
                 HttpStatus.NOT_FOUND.value()
         );
 
+    }
+
+    /**
+     * Handles OrderNotFoundException specifically.
+     * Returns a CustomApiErrorResponseDto with the error message, request URI, timestamp, and HTTP status code 404 (Not Found).
+     *
+     * @param e       the OrderNotFoundException that was thrown
+     * @param request the HTTP request that caused the exception
+     * @return a CustomApiErrorResponseDto containing error details
+     */
+    @ExceptionHandler(OrderNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public CustomApiErrorResponseDto handleOrderNotFoundException(OrderNotFoundException e, HttpServletRequest request) {
+        return new CustomApiErrorResponseDto(
+                e.getMessage(),
+                request.getRequestURI(),
+                Instant.now(),
+                HttpStatus.NOT_FOUND.value()
+        );
     }
 
 }

@@ -3,9 +3,16 @@ package com.github.marcelldechant.bistro.orderitem.mapper;
 import com.github.marcelldechant.bistro.orderitem.dto.CreateOrderItemDto;
 import com.github.marcelldechant.bistro.orderitem.dto.OrderItemResponseDto;
 import com.github.marcelldechant.bistro.orderitem.entity.OrderItem;
+import com.github.marcelldechant.bistro.product.entity.Product;
 
 import java.math.BigDecimal;
 
+/**
+ * Mapper class for converting between OrderItem entities and DTOs.
+ * This class provides static methods to convert CreateOrderItemDto to OrderItem entity
+ * and OrderItem entity to OrderItemResponseDto.
+ * It also includes a method to calculate the total price based on quantity and product price.
+ */
 public class OrderItemMapper {
 
     /**
@@ -15,15 +22,28 @@ public class OrderItemMapper {
     private OrderItemMapper() {
     }
 
-    public static OrderItem toEntity(CreateOrderItemDto dto) {
+    /**
+     * Converts a CreateOrderItemDto to an OrderItem entity.
+     *
+     * @param dto     the CreateOrderItemDto to convert
+     * @param product the Product associated with the order item
+     * @return an OrderItem entity with the product, quantity, price per unit, and total price
+     */
+    public static OrderItem toEntity(CreateOrderItemDto dto, Product product) {
         return OrderItem.builder()
-                .product(dto.product())
+                .product(product)
                 .quantity(dto.quantity())
-                .pricePerUnit(dto.product().getPrice())
-                .totalPrice(calculateTotalPrice(dto))
+                .pricePerUnit(product.getPrice())
+                .totalPrice(calculateTotalPrice(dto.quantity(), product))
                 .build();
     }
 
+    /**
+     * Converts an OrderItem entity to an OrderItemResponseDto.
+     *
+     * @param entity the OrderItem entity to convert
+     * @return an OrderItemResponseDto containing the order item details
+     */
     public static OrderItemResponseDto fromEntity(OrderItem entity) {
         return new OrderItemResponseDto(
                 entity.getId(),
@@ -34,8 +54,15 @@ public class OrderItemMapper {
         );
     }
 
-    private static BigDecimal calculateTotalPrice(CreateOrderItemDto dto) {
-        return dto.product().getPrice().multiply(BigDecimal.valueOf(dto.quantity()));
+    /**
+     * Calculates the total price for an order item based on quantity and product price.
+     *
+     * @param quantity the quantity of the product
+     * @param product  the Product entity containing the price
+     * @return the total price as a BigDecimal
+     */
+    private static BigDecimal calculateTotalPrice(int quantity, Product product) {
+        return product.getPrice().multiply(BigDecimal.valueOf(quantity));
     }
 
 }
