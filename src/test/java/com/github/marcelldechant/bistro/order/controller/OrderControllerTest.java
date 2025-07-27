@@ -15,6 +15,7 @@ import com.github.marcelldechant.bistro.order.service.OrderService;
 import com.github.marcelldechant.bistro.orderitem.dto.CreateOrderItemDto;
 import com.github.marcelldechant.bistro.orderitem.entity.OrderItem;
 import com.github.marcelldechant.bistro.product.entity.Product;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalToCompressingWhiteSpace;
@@ -51,6 +53,14 @@ class OrderControllerTest {
     @BeforeEach
     void resetMock() {
         reset(orderService);
+    }
+
+    /*
+     * Set the default locale to Germany for consistent number formatting in tests.
+     */
+    @BeforeAll
+    static void setLocale() {
+        Locale.setDefault(Locale.GERMANY);
     }
 
     @Test
