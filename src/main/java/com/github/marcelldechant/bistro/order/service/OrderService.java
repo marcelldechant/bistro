@@ -33,7 +33,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderService {
 
-    private static final int HAPPY_HOUR_START_HOUR = 14;
+    private static final int HAPPY_HOUR_START_HOUR = 13;
     private static final int HAPPY_HOUR_END_HOUR = 19;
     private static final double HAPPY_HOUR_DISCOUNT = 0.10;
 

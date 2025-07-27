@@ -4,6 +4,7 @@ import com.github.marcelldechant.bistro.exception.dto.CustomApiErrorResponseDto;
 import com.github.marcelldechant.bistro.order.exception.DuplicateException;
 import com.github.marcelldechant.bistro.order.exception.NoItemsException;
 import com.github.marcelldechant.bistro.order.exception.OrderNotFoundException;
+import com.github.marcelldechant.bistro.order.exception.QuantityException;
 import com.github.marcelldechant.bistro.product.exception.ProductNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -119,6 +120,25 @@ public class GlobalExceptionHandler {
                 request.getRequestURI(),
                 Instant.now(),
                 HttpStatus.CONFLICT.value()
+        );
+    }
+
+    /**
+     * Handles QuantityException specifically.
+     * Returns a CustomApiErrorResponseDto with the error message, request URI, timestamp, and HTTP status code 400 (Bad Request).
+     *
+     * @param e       the QuantityException that was thrown
+     * @param request the HTTP request that caused the exception
+     * @return a CustomApiErrorResponseDto containing error details
+     */
+    @ExceptionHandler(QuantityException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public CustomApiErrorResponseDto handleQuantityException(QuantityException e, HttpServletRequest request) {
+        return new CustomApiErrorResponseDto(
+                e.getMessage(),
+                request.getRequestURI(),
+                Instant.now(),
+                HttpStatus.BAD_REQUEST.value()
         );
     }
 
