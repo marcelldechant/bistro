@@ -1,8 +1,10 @@
 package com.github.marcelldechant.bistro.order.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.marcelldechant.bistro.order.config.TestTimeProviderConfig;
 import com.github.marcelldechant.bistro.order.dto.CreateOrderDto;
 import com.github.marcelldechant.bistro.order.dto.OrderResponseDto;
+import com.github.marcelldechant.bistro.order.util.TimeProvider;
 import com.github.marcelldechant.bistro.orderitem.dto.CreateOrderItemDto;
 import com.github.marcelldechant.bistro.orderitem.dto.OrderItemResponseDto;
 import org.junit.jupiter.api.BeforeAll;
@@ -10,14 +12,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -25,6 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Import(TestTimeProviderConfig.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class OrderControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -32,6 +40,8 @@ class OrderControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private TimeProvider timeProvider;
 
     /*
      * Set the default locale to Germany for consistent number formatting in tests.
@@ -42,7 +52,9 @@ class OrderControllerTest {
     }
 
     @Test
-    void createOrder_returnsCreatedOrder_whenValidInput() throws Exception {
+    void createOrder_returnsCreatedOrderWithoutDiscount_whenValidInput() throws Exception {
+        when(timeProvider.now()).thenReturn(LocalTime.of(14, 0));
+
         CreateOrderDto requestDto = new CreateOrderDto(
                 3,
                 List.of(new CreateOrderItemDto(1L, 2))
@@ -74,6 +86,43 @@ class OrderControllerTest {
                 );
 
         assertThat(response.total().doubleValue()).isEqualTo(5.00);
+    }
+
+    @Test
+    void createOrder_returnsCreatedOrderWithDiscount_whenValidInput() throws Exception {
+        when(timeProvider.now()).thenReturn(LocalTime.of(18, 0));
+
+        CreateOrderDto requestDto = new CreateOrderDto(
+                3,
+                List.of(new CreateOrderItemDto(1L, 2))
+        );
+
+        String requestBody = objectMapper.writeValueAsString(requestDto);
+
+        String responseJson = mockMvc.perform(post("/api/v1/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        OrderResponseDto response = objectMapper.readValue(responseJson, OrderResponseDto.class);
+
+        assertThat(response)
+                .isNotNull()
+                .extracting(OrderResponseDto::id, OrderResponseDto::tableNumber, OrderResponseDto::isHappyHour)
+                .containsExactly(1L, 3, true);
+
+        assertThat(response.items())
+                .hasSize(1)
+                .extracting(item -> item.product().getName(), OrderItemResponseDto::quantity)
+                .containsExactlyInAnyOrder(
+                        tuple("cola", 2)
+                );
+
+        assertThat(response.total().doubleValue()).isEqualTo(4.50);
     }
 
     @Test
@@ -141,6 +190,8 @@ class OrderControllerTest {
 
     @Test
     void getOrderById_returnsOrder_whenOrderExists() throws Exception {
+        when(timeProvider.now()).thenReturn(LocalTime.of(14, 0));
+
         CreateOrderDto createDto = new CreateOrderDto(
                 6,
                 List.of(new CreateOrderItemDto(1L, 2))
@@ -192,7 +243,9 @@ class OrderControllerTest {
     }
 
     @Test
-    void getReceiptByOrderId_returnsFormattedReceipt_whenOrderExists() throws Exception {
+    void getReceiptByOrderId_returnsFormattedReceiptWithoutDiscount_whenOrderExists() throws Exception {
+        when(timeProvider.now()).thenReturn(LocalTime.of(14, 0));
+
         CreateOrderDto createDto = new CreateOrderDto(
                 10,
                 List.of(
@@ -232,6 +285,59 @@ class OrderControllerTest {
                 "-------------------------",
                 "Subtotal: 18,00",
                 "Total: 18,00"
+        );
+
+        List<String> actualLines = receipt.lines()
+                .map(String::strip)
+                .toList();
+
+        assertThat(actualLines).containsExactlyElementsOf(expectedLines);
+    }
+
+    @Test
+    void getReceiptByOrderId_returnsFormattedReceiptWithDiscount_whenOrderExists() throws Exception {
+        when(timeProvider.now()).thenReturn(LocalTime.of(18, 0));
+
+        CreateOrderDto createDto = new CreateOrderDto(
+                10,
+                List.of(
+                        new CreateOrderItemDto(1L, 2),
+                        new CreateOrderItemDto(2L, 1),
+                        new CreateOrderItemDto(3L, 1)
+                )
+        );
+
+        String createJson = objectMapper.writeValueAsString(createDto);
+
+        String createdOrderJson = mockMvc.perform(post("/api/v1/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createJson))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        OrderResponseDto createdOrder = objectMapper.readValue(createdOrderJson, OrderResponseDto.class);
+        long orderId = createdOrder.id();
+
+        String receipt = mockMvc.perform(get("/api/v1/orders/" + orderId + "/receipt"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("text/plain;charset=UTF-8"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        List<String> expectedLines = List.of(
+                "-------------------------",
+                "Table Nr. 10",
+                "-------------------------",
+                "2 x cola @ 2,50 = 5,00",
+                "1 x pizza @ 6,00 = 6,00",
+                "1 x burger @ 7,00 = 7,00",
+                "-------------------------",
+                "Subtotal: 18,00",
+                "Discount: 10%",
+                "Total: 16,20"
         );
 
         List<String> actualLines = receipt.lines()

@@ -9,6 +9,7 @@ import com.github.marcelldechant.bistro.order.exception.OrderNotFoundException;
 import com.github.marcelldechant.bistro.order.exception.QuantityException;
 import com.github.marcelldechant.bistro.order.mapper.OrderMapper;
 import com.github.marcelldechant.bistro.order.repository.OrderRepository;
+import com.github.marcelldechant.bistro.order.util.TimeProvider;
 import com.github.marcelldechant.bistro.orderitem.dto.CreateOrderItemDto;
 import com.github.marcelldechant.bistro.orderitem.entity.OrderItem;
 import com.github.marcelldechant.bistro.orderitem.mapper.OrderItemMapper;
@@ -26,11 +27,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderService {
     private static final LocalTime HAPPY_HOUR_START = LocalTime.of(17, 0);
-    private static final LocalTime HAPPY_HOUR_END = LocalTime.of(21, 0);
+    private static final LocalTime HAPPY_HOUR_END = LocalTime.of(19, 0);
     private static final BigDecimal HAPPY_HOUR_DISCOUNT = BigDecimal.valueOf(0.10);
 
     private final OrderRepository orderRepository;
     private final ProductService productService;
+    private final TimeProvider timeProvider;
 
     public OrderResponseDto createOrder(CreateOrderDto dto) {
         List<OrderItem> items = buildOrderItems(dto.items());
@@ -89,7 +91,7 @@ public class OrderService {
     }
 
     private boolean isHappyHour() {
-        LocalTime now = LocalTime.now();
+        LocalTime now = timeProvider.now();
         return !now.isBefore(HAPPY_HOUR_START) && now.isBefore(HAPPY_HOUR_END);
     }
 

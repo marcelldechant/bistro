@@ -7,6 +7,7 @@ import com.github.marcelldechant.bistro.order.exception.DuplicateException;
 import com.github.marcelldechant.bistro.order.exception.NoItemsException;
 import com.github.marcelldechant.bistro.order.exception.OrderNotFoundException;
 import com.github.marcelldechant.bistro.order.repository.OrderRepository;
+import com.github.marcelldechant.bistro.order.util.TimeProvider;
 import com.github.marcelldechant.bistro.orderitem.dto.CreateOrderItemDto;
 import com.github.marcelldechant.bistro.orderitem.dto.OrderItemResponseDto;
 import com.github.marcelldechant.bistro.orderitem.entity.OrderItem;
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,9 +30,10 @@ import static org.mockito.Mockito.when;
 class OrderServiceTest {
     private final OrderRepository orderRepository = Mockito.mock(OrderRepository.class);
     private final ProductRepository productRepository = Mockito.mock(ProductRepository.class);
+    private final TimeProvider timeProvider = Mockito.mock(TimeProvider.class);
 
     private final ProductService productService = new ProductService(productRepository);
-    private final OrderService orderService = new OrderService(orderRepository, productService);
+    private final OrderService orderService = new OrderService(orderRepository, productService, timeProvider);
 
     @Test
     void createOrder_shouldCreateOrderSuccessfully_whenValidInput() {
@@ -55,6 +58,7 @@ class OrderServiceTest {
 
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(orderRepository.save(Mockito.any(Order.class))).thenReturn(savedOrder);
+        when(timeProvider.now()).thenReturn(LocalTime.of(17, 0));
 
         OrderResponseDto result = orderService.createOrder(orderDto);
 
