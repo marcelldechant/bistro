@@ -2,8 +2,10 @@ package com.github.marcelldechant.bistro.order.service;
 
 import com.github.marcelldechant.bistro.order.dto.CreateOrderDto;
 import com.github.marcelldechant.bistro.order.dto.OrderResponseDto;
+import com.github.marcelldechant.bistro.order.entity.Order;
 import com.github.marcelldechant.bistro.order.exception.DuplicateException;
 import com.github.marcelldechant.bistro.order.exception.NoItemsException;
+import com.github.marcelldechant.bistro.order.exception.OrderNotFoundException;
 import com.github.marcelldechant.bistro.order.exception.QuantityException;
 import com.github.marcelldechant.bistro.order.repository.OrderRepository;
 import com.github.marcelldechant.bistro.orderitem.dto.CreateOrderItemDto;
@@ -118,6 +120,53 @@ class OrderServiceTest {
                 .hasMessageContaining("Duplicate products in order are not allowed");
     }
 
+    @Test
+    void getOrderById_shouldReturnCorrectOrder_whenValidIdProvided() {
+        Product pizza = createProduct("Pizza", BigDecimal.valueOf(10.00));
+        CreateOrderDto dto = new CreateOrderDto(
+                5,
+                List.of(new CreateOrderItemDto(pizza.getId(), 1))
+        );
+
+        OrderResponseDto createdOrder = orderService.createOrder(dto);
+        OrderResponseDto fetchedOrder = orderService.getOrderById(createdOrder.id());
+
+        assertThat(fetchedOrder.id()).isEqualTo(createdOrder.id());
+        assertThat(fetchedOrder.tableNumber()).isEqualTo(createdOrder.tableNumber());
+        assertThat(fetchedOrder.orderItems()).hasSize(1);
+    }
+
+    @Test
+    void getOrderById_shouldThrowException_whenOrderDoesNotExist() {
+        long nonExistentOrderId = 999L;
+        assertThatThrownBy(() -> orderService.getOrderById(nonExistentOrderId))
+                .isInstanceOf(OrderNotFoundException.class)
+                .hasMessageContaining("Order not found with id: " + nonExistentOrderId);
+    }
+
+    @Test
+    void getOrderByIdEntity_shouldReturnCorrectOrderEntity_whenValidIdProvided() {
+        Product pizza = createProduct("Pizza", BigDecimal.valueOf(10.00));
+        CreateOrderDto dto = new CreateOrderDto(
+                5,
+                List.of(new CreateOrderItemDto(pizza.getId(), 1))
+        );
+
+        OrderResponseDto createdOrder = orderService.createOrder(dto);
+        Order fetchedOrder = orderService.getOrderByIdEntity(createdOrder.id());
+
+        assertThat(fetchedOrder.getId()).isEqualTo(createdOrder.id());
+        assertThat(fetchedOrder.getTableNumber()).isEqualTo(createdOrder.tableNumber());
+        assertThat(fetchedOrder.getItems()).hasSize(1);
+    }
+
+    @Test
+    void getOrderByIdEntity_shouldThrowException_whenOrderDoesNotExist() {
+        long nonExistentOrderId = 999L;
+        assertThatThrownBy(() -> orderService.getOrderByIdEntity(nonExistentOrderId))
+                .isInstanceOf(OrderNotFoundException.class)
+                .hasMessageContaining("Order not found with id: " + nonExistentOrderId);
+    }
 
     private Product createProduct(String name, BigDecimal price) {
         return productRepository.save(Product.builder().name(name).price(price).build());
