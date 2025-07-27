@@ -341,6 +341,6 @@ public interface OrderApi {
                     )
             }
     )
-    @GetMapping("/{id}/receipt")
-    String getReceipt(@PathVariable long id);
+    @GetMapping(value = "/{id}/receipt", produces = MediaType.TEXT_PLAIN_VALUE)
+    String getReceiptByOrderId(@PathVariable long id);
 }

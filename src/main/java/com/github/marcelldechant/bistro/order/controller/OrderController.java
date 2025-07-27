@@ -33,7 +33,6 @@ public class OrderController implements OrderApi {
      * @return an OrderResponseDto containing the created order details
      */
     @Override
-    //TODO: Add integration tests for this method
     public OrderResponseDto createOrder(CreateOrderDto createOrderDto) {
         return orderService.createOrder(createOrderDto);
     }
@@ -46,7 +45,6 @@ public class OrderController implements OrderApi {
      * @return an OrderResponseDto containing the order details
      */
     @Override
-    //TODO: Add integration tests for this method
     public OrderResponseDto getOrderById(long id) {
         return orderService.getOrderById(id);
     }
@@ -59,8 +57,7 @@ public class OrderController implements OrderApi {
      * @return a String containing the formatted receipt
      */
     @Override
-    //TODO: Add integration tests for this method
-    public String getReceipt(long id) {
+    public String getReceiptByOrderId(long id) {
         Order order = orderService.getOrderByIdEntity(id);
         return ReceiptFormatter.format(order);
     }
