@@ -10,13 +10,6 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * Represents an order in the Bistro application.
- * This class contains details about the order such as table number, items, subtotal,
- * discount, total amount, and whether it's a happy hour order.
- *
- * @author Marcell Dechant
- */
 @Entity
 @Data
 @NoArgsConstructor
@@ -24,7 +17,6 @@ import java.util.List;
 @Builder
 @Table(name = "orders")
 public class Order {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -42,5 +34,4 @@ public class Order {
     private BigDecimal total;
 
     private boolean isHappyHour;
-
 }

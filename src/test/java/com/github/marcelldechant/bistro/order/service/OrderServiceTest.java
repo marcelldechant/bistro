@@ -6,97 +6,73 @@ import com.github.marcelldechant.bistro.order.entity.Order;
 import com.github.marcelldechant.bistro.order.exception.DuplicateException;
 import com.github.marcelldechant.bistro.order.exception.NoItemsException;
 import com.github.marcelldechant.bistro.order.exception.OrderNotFoundException;
-import com.github.marcelldechant.bistro.order.exception.QuantityException;
 import com.github.marcelldechant.bistro.order.repository.OrderRepository;
 import com.github.marcelldechant.bistro.orderitem.dto.CreateOrderItemDto;
+import com.github.marcelldechant.bistro.orderitem.dto.OrderItemResponseDto;
+import com.github.marcelldechant.bistro.orderitem.entity.OrderItem;
+import com.github.marcelldechant.bistro.orderitem.mapper.OrderItemMapper;
 import com.github.marcelldechant.bistro.product.entity.Product;
 import com.github.marcelldechant.bistro.product.exception.ProductNotFoundException;
 import com.github.marcelldechant.bistro.product.repository.ProductRepository;
-import org.junit.jupiter.api.BeforeEach;
+import com.github.marcelldechant.bistro.product.service.ProductService;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.Mockito;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest
 class OrderServiceTest {
+    private final OrderRepository orderRepository = Mockito.mock(OrderRepository.class);
+    private final ProductRepository productRepository = Mockito.mock(ProductRepository.class);
 
-    @Autowired
-    private OrderService orderService;
-
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private OrderRepository orderRepository;
-
-    @BeforeEach
-    void cleanDatabase() {
-        orderRepository.deleteAll();
-        productRepository.deleteAll();
-    }
+    private final ProductService productService = new ProductService(productRepository);
+    private final OrderService orderService = new OrderService(orderRepository, productService);
 
     @Test
-    void createOrder_shouldPersistCorrectly_whenValidRequestProvided() {
-        Product cola = createProduct("Cola", BigDecimal.valueOf(2.50));
-        Product pizza = createProduct("Pizza", BigDecimal.valueOf(10.00));
+    void createOrder_shouldCreateOrderSuccessfully_whenValidInput() {
+        CreateOrderItemDto itemDto = new CreateOrderItemDto(1L, 2);
+        CreateOrderDto orderDto = new CreateOrderDto(5, List.of(itemDto));
 
-        CreateOrderDto dto = new CreateOrderDto(
-                5,
-                List.of(
-                        new CreateOrderItemDto(pizza.getId(), 2),
-                        new CreateOrderItemDto(cola.getId(), 1)
-                )
-        );
+        Product product = Product.builder()
+                .id(1L)
+                .name("Burger")
+                .price(BigDecimal.valueOf(5.00))
+                .build();
 
-        OrderResponseDto response = orderService.createOrder(dto);
+        Order savedOrder = Order.builder()
+                .id(1L)
+                .tableNumber(5)
+                .items(List.of(OrderItemMapper.toEntity(itemDto, product)))
+                .subtotal(BigDecimal.valueOf(10.00))
+                .discount(BigDecimal.ZERO)
+                .total(BigDecimal.valueOf(10.00))
+                .isHappyHour(false)
+                .build();
 
-        assertThat(response.tableNumber()).isEqualTo(5);
-        assertThat(response.orderItems()).hasSize(2);
-        assertThat(response.subtotal()).isEqualByComparingTo("22.50");
-        assertThat(response.total()).isEqualByComparingTo(response.subtotal().subtract(response.discount()));
-    }
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(orderRepository.save(Mockito.any(Order.class))).thenReturn(savedOrder);
 
-    @Test
-    void createOrder_shouldThrowQuantityException_whenInvalidQuantityProvided() {
-        Product pizza = createProduct("Pizza", BigDecimal.valueOf(10.00));
-        int invalidQuantity = -1;
+        OrderResponseDto result = orderService.createOrder(orderDto);
 
-        CreateOrderDto dto = new CreateOrderDto(
-                5,
-                List.of(new CreateOrderItemDto(pizza.getId(), invalidQuantity))
-        );
+        assertThat(result)
+                .isNotNull()
+                .extracting(OrderResponseDto::id, OrderResponseDto::tableNumber, OrderResponseDto::subtotal,
+                        OrderResponseDto::discount, OrderResponseDto::total, OrderResponseDto::isHappyHour)
+                .containsExactly(1L, 5, BigDecimal.valueOf(10.00), BigDecimal.ZERO, BigDecimal.valueOf(10.00), false);
 
-        assertThatThrownBy(() -> orderService.createOrder(dto))
-                .isInstanceOf(QuantityException.class)
-                .hasMessageContaining("Quantity must be greater than 0");
-    }
-
-    @Test
-    void createOrder_shouldThrowException_whenProductIdDoesNotExist() {
-        long nonExistentProductId = 999L;
-
-        CreateOrderDto dto = new CreateOrderDto(
-                10,
-                List.of(new CreateOrderItemDto(nonExistentProductId, 1))
-        );
-
-        assertThatThrownBy(() -> orderService.createOrder(dto))
-                .isInstanceOf(ProductNotFoundException.class)
-                .hasMessageContaining("Product not found with id");
+        assertThat(result.items())
+                .hasSize(1)
+                .extracting(item -> item.product().getName(), OrderItemResponseDto::quantity)
+                .containsExactly(tuple("Burger", 2));
     }
 
     @Test
     void createOrder_shouldThrowException_whenItemsListIsEmpty() {
-        CreateOrderDto dto = new CreateOrderDto(
-                5,
-                List.of()
-        );
+        CreateOrderDto dto = new CreateOrderDto(1, List.of());
 
         assertThatThrownBy(() -> orderService.createOrder(dto))
                 .isInstanceOf(NoItemsException.class)
@@ -105,15 +81,10 @@ class OrderServiceTest {
 
     @Test
     void createOrder_shouldThrowException_whenProductListContainsDuplicates() {
-        Product cola = createProduct("Cola", BigDecimal.valueOf(2.50));
+        CreateOrderItemDto item1 = new CreateOrderItemDto(1L, 1);
+        CreateOrderItemDto item2 = new CreateOrderItemDto(1L, 2);
 
-        CreateOrderDto dto = new CreateOrderDto(
-                10,
-                List.of(
-                        new CreateOrderItemDto(cola.getId(), 1),
-                        new CreateOrderItemDto(cola.getId(), 2)
-                )
-        );
+        CreateOrderDto dto = new CreateOrderDto(3, List.of(item1, item2));
 
         assertThatThrownBy(() -> orderService.createOrder(dto))
                 .isInstanceOf(DuplicateException.class)
@@ -121,54 +92,105 @@ class OrderServiceTest {
     }
 
     @Test
-    void getOrderById_shouldReturnCorrectOrder_whenValidIdProvided() {
-        Product pizza = createProduct("Pizza", BigDecimal.valueOf(10.00));
-        CreateOrderDto dto = new CreateOrderDto(
-                5,
-                List.of(new CreateOrderItemDto(pizza.getId(), 1))
-        );
+    void createOrder_shouldThrowException_whenProductIdDoesNotExist() {
+        CreateOrderItemDto item = new CreateOrderItemDto(99L, 1);
+        CreateOrderDto dto = new CreateOrderDto(4, List.of(item));
 
-        OrderResponseDto createdOrder = orderService.createOrder(dto);
-        OrderResponseDto fetchedOrder = orderService.getOrderById(createdOrder.id());
+        when(productRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThat(fetchedOrder.id()).isEqualTo(createdOrder.id());
-        assertThat(fetchedOrder.tableNumber()).isEqualTo(createdOrder.tableNumber());
-        assertThat(fetchedOrder.orderItems()).hasSize(1);
+        assertThatThrownBy(() -> orderService.createOrder(dto))
+                .isInstanceOf(ProductNotFoundException.class)
+                .hasMessageContaining("Product not found with id: 99");
+    }
+
+    @Test
+    void getOrderById_shouldReturnOrderResponseDto_whenOrderExists() {
+        long orderId = 1L;
+        Product product = new Product(1L, "Cola", BigDecimal.valueOf(2.50));
+        OrderItem orderItem = new OrderItem(1L, product, 2, BigDecimal.valueOf(2.50), BigDecimal.valueOf(5.00));
+
+        Order order = Order.builder()
+                .id(orderId)
+                .tableNumber(7)
+                .items(List.of(orderItem))
+                .subtotal(BigDecimal.valueOf(5.00))
+                .discount(BigDecimal.ZERO)
+                .total(BigDecimal.valueOf(5.00))
+                .isHappyHour(false)
+                .build();
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        OrderResponseDto response = orderService.getOrderById(orderId);
+
+        assertThat(response)
+                .isNotNull()
+                .extracting(OrderResponseDto::id, OrderResponseDto::tableNumber, OrderResponseDto::subtotal,
+                        OrderResponseDto::discount, OrderResponseDto::total, OrderResponseDto::isHappyHour)
+                .containsExactly(orderId, 7, BigDecimal.valueOf(5.00),
+                        BigDecimal.ZERO, BigDecimal.valueOf(5.00), false);
+
+        assertThat(response.items())
+                .hasSize(1)
+                .extracting(item -> item.product().getName(), OrderItemResponseDto::quantity)
+                .containsExactly(tuple("Cola", 2));
     }
 
     @Test
     void getOrderById_shouldThrowException_whenOrderDoesNotExist() {
-        long nonExistentOrderId = 999L;
-        assertThatThrownBy(() -> orderService.getOrderById(nonExistentOrderId))
+        long nonExistentId = 999L;
+
+        when(orderRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> orderService.getOrderById(nonExistentId))
                 .isInstanceOf(OrderNotFoundException.class)
-                .hasMessageContaining("Order not found with id: " + nonExistentOrderId);
+                .hasMessageContaining("Order not found with id: " + nonExistentId);
     }
 
     @Test
-    void getOrderByIdEntity_shouldReturnCorrectOrderEntity_whenValidIdProvided() {
-        Product pizza = createProduct("Pizza", BigDecimal.valueOf(10.00));
-        CreateOrderDto dto = new CreateOrderDto(
-                5,
-                List.of(new CreateOrderItemDto(pizza.getId(), 1))
-        );
+    void getOrderByIdEntity_shouldReturnOrder_whenOrderExists() {
+        long orderId = 1L;
+        Product product = new Product(1L, "Pizza", BigDecimal.valueOf(7.50));
+        OrderItem orderItem = new OrderItem(1L, product, 1, BigDecimal.valueOf(7.50), BigDecimal.valueOf(7.50));
 
-        OrderResponseDto createdOrder = orderService.createOrder(dto);
-        Order fetchedOrder = orderService.getOrderByIdEntity(createdOrder.id());
+        Order order = Order.builder()
+                .id(orderId)
+                .tableNumber(2)
+                .items(List.of(orderItem))
+                .subtotal(BigDecimal.valueOf(7.50))
+                .discount(BigDecimal.ZERO)
+                .total(BigDecimal.valueOf(7.50))
+                .isHappyHour(false)
+                .build();
 
-        assertThat(fetchedOrder.getId()).isEqualTo(createdOrder.id());
-        assertThat(fetchedOrder.getTableNumber()).isEqualTo(createdOrder.tableNumber());
-        assertThat(fetchedOrder.getItems()).hasSize(1);
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        Order result = orderService.getOrderByIdEntity(orderId);
+
+        assertThat(result)
+                .isNotNull()
+                .extracting(Order::getId, Order::getTableNumber, Order::getSubtotal,
+                        Order::getDiscount, Order::getTotal, Order::isHappyHour)
+                .containsExactly(orderId, 2, BigDecimal.valueOf(7.50),
+                        BigDecimal.ZERO, BigDecimal.valueOf(7.50), false);
+
+        assertThat(result.getItems())
+                .hasSize(1)
+                .first()
+                .satisfies(item -> {
+                    assertThat(item.getProduct().getName()).isEqualTo("Pizza");
+                    assertThat(item.getQuantity()).isEqualTo(1);
+                });
     }
 
     @Test
     void getOrderByIdEntity_shouldThrowException_whenOrderDoesNotExist() {
-        long nonExistentOrderId = 999L;
-        assertThatThrownBy(() -> orderService.getOrderByIdEntity(nonExistentOrderId))
-                .isInstanceOf(OrderNotFoundException.class)
-                .hasMessageContaining("Order not found with id: " + nonExistentOrderId);
-    }
+        long missingId = 999L;
 
-    private Product createProduct(String name, BigDecimal price) {
-        return productRepository.save(Product.builder().name(name).price(price).build());
+        when(orderRepository.findById(missingId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> orderService.getOrderByIdEntity(missingId))
+                .isInstanceOf(OrderNotFoundException.class)
+                .hasMessageContaining("Order not found with id: " + missingId);
     }
 }

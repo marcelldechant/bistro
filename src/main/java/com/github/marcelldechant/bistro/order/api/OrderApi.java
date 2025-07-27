@@ -12,22 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * API interface for managing orders in the Bistro application.
- * This interface defines the endpoints for retrieving orders information.
- * It is used to generate OpenAPI documentation for the orders-related operations.
- *
- * @author Marcell Dechant
- */
 public interface OrderApi {
-
-    /**
-     * Creates a new order based on the provided CreateOrderDto.
-     * This method is mapped to the POST request for the base URL of this controller.
-     *
-     * @param createOrderDto the DTO containing order details to be created
-     * @return an OrderResponseDto containing the created order details
-     */
     @Operation(
             summary = "Create a new order",
             description = "Creates a new order with the provided details",
@@ -133,13 +118,6 @@ public interface OrderApi {
     @ResponseStatus(HttpStatus.CREATED)
     OrderResponseDto createOrder(@RequestBody CreateOrderDto createOrderDto);
 
-    /**
-     * Retrieves an order by its ID from the order service.
-     * This method is mapped to the GET request for the URL "/{id}" where {id} is the order ID.
-     *
-     * @param id the ID of the order to retrieve
-     * @return an OrderResponseDto containing the order details
-     */
     @Operation(
             summary = "Retrieve an order by ID",
             description = "Fetches an order by its unique ID. Returns 404 if the order does not exist.",
@@ -257,13 +235,6 @@ public interface OrderApi {
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     OrderResponseDto getOrderById(@PathVariable long id);
 
-    /**
-     * Retrieves the receipt for an order by its ID.
-     * This method is mapped to the GET request for the URL "/{id}/receipt" where {id} is the order ID.
-     *
-     * @param id the ID of the order for which to retrieve the receipt
-     * @return a String containing the receipt details
-     */
     @Operation(
             summary = "Retrieve receipt for a given order",
             description = "Generates and returns a plain-text receipt for the specified order ID. Returns 404 if the order does not exist.",

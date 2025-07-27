@@ -14,21 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
-/**
- * API interface for managing products in the Bistro application.
- * This interface defines the endpoints for retrieving product information.
- * It is used to generate OpenAPI documentation for the product-related operations.
- *
- * @author Marcell Dechant
- */
 public interface ProductApi {
-
-    /**
-     * Retrieves all products available in the Bistro application.
-     * This method returns a list of ProductResponseDto objects containing product details.
-     *
-     * @return a list of ProductResponseDto representing all products
-     */
     @Operation(
             summary = "Get all products",
             description = "Returns a list of all available products",
@@ -76,13 +62,6 @@ public interface ProductApi {
     @GetMapping
     List<ProductResponseDto> getAllProducts();
 
-    /**
-     * Retrieves a product by its ID.
-     * This method returns a ProductResponseDto object containing the details of the specified product.
-     *
-     * @param id the ID of the product to retrieve
-     * @return a ProductResponseDto representing the product with the specified ID
-     */
     @Operation(
             summary = "Get product by ID",
             description = "Returns the product with the specified ID",
@@ -138,5 +117,4 @@ public interface ProductApi {
     )
     @GetMapping("/{id}")
     ProductResponseDto getProductById(@PathVariable long id);
-
 }

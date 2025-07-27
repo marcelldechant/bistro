@@ -5,31 +5,12 @@ import com.github.marcelldechant.bistro.orderitem.entity.OrderItem;
 
 import java.math.BigDecimal;
 
-/**
- * Utility class for formatting receipts for orders.
- * This class provides a method to format an order into a receipt string.
- * It is not intended to be instantiated, hence the private constructor.
- *
- * @author Marcell Dechant
- */
 public class ReceiptFormatter {
-
     private static final String SEPARATOR_LINE = "-------------------------\n";
 
-    /**
-     * Private constructor to prevent instantiation of the utility class.
-     * This class is intended to be used statically, so no instances should be created.
-     */
     private ReceiptFormatter() {
     }
 
-    /**
-     * Formats an order into a receipt string.
-     * The receipt includes the table number, items ordered, subtotal, discount (if applicable), and total amount.
-     *
-     * @param order the order to format
-     * @return a formatted receipt string
-     */
     public static String format(Order order) {
         StringBuilder sb = new StringBuilder();
         sb.append(SEPARATOR_LINE);
@@ -52,5 +33,4 @@ public class ReceiptFormatter {
 
         return sb.toString();
     }
-
 }

@@ -7,17 +7,9 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
-/**
- * Transformer that converts a CSV line (String array) into a CreateProductDto.
- * It trims the product name and converts the price from String to BigDecimal.
- * If the product name is blank or the price format is invalid, it logs an error.
- *
- * @author Marcell Dechant
- */
 @Component
 @Slf4j
 public class CsvToProductTransformer implements GenericTransformer<String[], CreateProductDto> {
-
     @Override
     public CreateProductDto transform(String[] line) {
         String rawName = line[0].trim();
@@ -35,5 +27,4 @@ public class CsvToProductTransformer implements GenericTransformer<String[], Cre
             return null;
         }
     }
-
 }

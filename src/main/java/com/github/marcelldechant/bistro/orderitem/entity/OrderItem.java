@@ -10,20 +10,12 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-/**
- * Represents an item in an order in the Bistro application.
- * Each OrderItem is associated with a Product and contains information about the quantity,
- * price per unit, and total price.
- *
- * @author Marcell Dechant
- */
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Builder
 @Entity
 public class OrderItem {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -40,5 +32,4 @@ public class OrderItem {
 
     @Column(nullable = false, precision = 7, scale = 2)
     private BigDecimal totalPrice;
-
 }

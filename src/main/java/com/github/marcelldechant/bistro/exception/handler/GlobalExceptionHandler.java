@@ -6,6 +6,7 @@ import com.github.marcelldechant.bistro.order.exception.NoItemsException;
 import com.github.marcelldechant.bistro.order.exception.OrderNotFoundException;
 import com.github.marcelldechant.bistro.order.exception.QuantityException;
 import com.github.marcelldechant.bistro.product.exception.ProductNotFoundException;
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,24 +15,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.Instant;
 
-/**
- * Global exception handler for the Bistro application.
- * This class handles exceptions thrown by controllers and returns a standardized error response.
- * It uses @RestControllerAdvice to apply to all controllers in the application.
- *
- * @author Marcell Dechant
- */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
-    /**
-     * Handles all exceptions that are not specifically handled by other exception handlers.
-     * Returns a CustomApiErrorResponseDto with the error message, request URI, timestamp, and HTTP status code.
-     *
-     * @param e       the exception that was thrown
-     * @param request the HTTP request that caused the exception
-     * @return a CustomApiErrorResponseDto containing error details
-     */
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public CustomApiErrorResponseDto handleException(Exception e, HttpServletRequest request) {
@@ -45,14 +30,7 @@ public class GlobalExceptionHandler {
 
     }
 
-    /**
-     * Handles ProductNotFoundException specifically.
-     * Returns a CustomApiErrorResponseDto with the error message, request URI, timestamp, and HTTP status code 404 (Not Found).
-     *
-     * @param e       the ProductNotFoundException that was thrown
-     * @param request the HTTP request that caused the exception
-     * @return a CustomApiErrorResponseDto containing error details
-     */
+    @Hidden
     @ExceptionHandler(ProductNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public CustomApiErrorResponseDto handleProductNotFoundException(ProductNotFoundException e, HttpServletRequest request) {
@@ -66,14 +44,7 @@ public class GlobalExceptionHandler {
 
     }
 
-    /**
-     * Handles OrderNotFoundException specifically.
-     * Returns a CustomApiErrorResponseDto with the error message, request URI, timestamp, and HTTP status code 404 (Not Found).
-     *
-     * @param e       the OrderNotFoundException that was thrown
-     * @param request the HTTP request that caused the exception
-     * @return a CustomApiErrorResponseDto containing error details
-     */
+    @Hidden
     @ExceptionHandler(OrderNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public CustomApiErrorResponseDto handleOrderNotFoundException(OrderNotFoundException e, HttpServletRequest request) {
@@ -85,14 +56,7 @@ public class GlobalExceptionHandler {
         );
     }
 
-    /**
-     * Handles NoItemsException specifically.
-     * Returns a CustomApiErrorResponseDto with the error message, request URI, timestamp, and HTTP status code 400 (Bad Request).
-     *
-     * @param e       the NoItemsException that was thrown
-     * @param request the HTTP request that caused the exception
-     * @return a CustomApiErrorResponseDto containing error details
-     */
+    @Hidden
     @ExceptionHandler(NoItemsException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public CustomApiErrorResponseDto handleNoItemsException(NoItemsException e, HttpServletRequest request) {
@@ -104,14 +68,7 @@ public class GlobalExceptionHandler {
         );
     }
 
-    /**
-     * Handles DuplicateException specifically.
-     * Returns a CustomApiErrorResponseDto with the error message, request URI, timestamp, and HTTP status code 409 (Conflict).
-     *
-     * @param e       the DuplicateException that was thrown
-     * @param request the HTTP request that caused the exception
-     * @return a CustomApiErrorResponseDto containing error details
-     */
+    @Hidden
     @ExceptionHandler(DuplicateException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public CustomApiErrorResponseDto handleDuplicateException(DuplicateException e, HttpServletRequest request) {
@@ -123,14 +80,7 @@ public class GlobalExceptionHandler {
         );
     }
 
-    /**
-     * Handles QuantityException specifically.
-     * Returns a CustomApiErrorResponseDto with the error message, request URI, timestamp, and HTTP status code 400 (Bad Request).
-     *
-     * @param e       the QuantityException that was thrown
-     * @param request the HTTP request that caused the exception
-     * @return a CustomApiErrorResponseDto containing error details
-     */
+    @Hidden
     @ExceptionHandler(QuantityException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public CustomApiErrorResponseDto handleQuantityException(QuantityException e, HttpServletRequest request) {
@@ -141,5 +91,4 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST.value()
         );
     }
-
 }

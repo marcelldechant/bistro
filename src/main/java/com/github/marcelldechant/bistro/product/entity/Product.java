@@ -9,11 +9,6 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-/**
- * Represents a product in the Bistro application.
- *
- * @author Marcell Dechant
- */
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -21,7 +16,6 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "products")
 public class Product {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -36,5 +30,4 @@ public class Product {
     @Digits(integer = 5, fraction = 2, message = "Price must have max 5 integer and 2 fraction digits")
     @Column(nullable = false, precision = 7, scale = 2)
     private BigDecimal price;
-
 }
