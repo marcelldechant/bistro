@@ -21,4 +21,4 @@ spring:
     open-in-view: false
 
 csv:
-  input-directory: ./data/input
+  input-directory: ${CSV_INPUT_DIR:./data/input}
